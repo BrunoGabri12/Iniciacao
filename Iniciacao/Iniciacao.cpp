@@ -12,37 +12,46 @@
 
 int main()
 {
+     std::string pathPattern= "C:\\Users\\BrunoGabriel\\Desktop\\img\\total_imgs\\normal\\todas_imagens\\superpixel\\melhoresimgs\\imagens\\v2\\resultado\\";
+     processingImg::imgContainer vectorImgs(pathPattern);
+  
 
 
 
+      processingImg::ManipulatorImg processor; 
+      int BioFilme;
+      int Protese;
 
-     
-      std::string path = "C:\\Users\\BrunoGabriel\\Desktop\\img\\total_imgs\\normal\\imagens\\superpixel\\melhoresimgs\\imagens\\arvoreNova\\";
-      std::string path_segmentada = "C:\\Users\\BrunoGabriel\\Desktop\\img\\total_imgs\\normal\\imagens\\superpixel\\melhoresimgs\\segmentada_manualmente\\";
-      processingImg::imgContainer vector(path);
-      processingImg::imgContainer  vectorSegmentada(path_segmentada);
-      processingImg::ManipulatorImg process;
-      processingImg::imageClass mask;
-      processingImg::imageClass segmentada;
-      processingImg::imageClass ManipuledImg;
-      
-      
+      std::vector<std::string> imagens = vectorImgs.returnNamesImages();
 
-      std::vector<std::string> names = vector.returnNamesImages(); 
+      for (int i = 0; i < vectorImgs.sizeVector(); i++) {
 
-      mask = vector.getImgInVector(19);
-      segmentada = vectorSegmentada.getImgInVector(19);
-      mask.imShow();
-      segmentada.imShow();
-          process.setImg(mask);
-         ManipuledImg = process.applyMetrics(segmentada).build();
+          processor.setImg(vectorImgs.getImgInVector(i));
 
-         ManipuledImg.imWrite(path, "aval_total" + names[6+2]);
-           
+
+          BioFilme= processor.calcAreaBiofilme();
+          Protese = processor.calcAreaProtese();
+
+        //  segmentada = processor.applyClassificationBiofilmeAndProtese().applyMetrics(vectorn.getImgInVector(i)).build();
+          
+         // segmentada = processor.applyMetrics(vectorPattern.getImgInVector(i)).build();
+          //segmentada.imShow();
+         // vector.getImgInVector(i).imShow();
+          //vectorPattern.getImgInVector(i).imShow();
+
+         
+          //vectorImgs.getImgInVector(i).imShow();
+
+         
+          std::cout  << Protese <<"," << BioFilme << std::endl;
+    
+      }
+
+
        
        
+      //Preciso contabilizar a quantidade de pixels de biofilme e de prótese e fazer os cálculos na mão das métricas 
 
-
-
+      
 
 }

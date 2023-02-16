@@ -80,11 +80,19 @@ namespace processingImg {
 
 		ManipulatorImg applySuperPixelsSegmentation(int algorithm, int region_size, float ruler, int iterate);
 
+		bool applyClassificationOldTree(cv::Scalar BGR);
+
+		bool applyClassificationNewTree(cv::Scalar BGR);
+
+		bool applyClassificationRefinedTree(cv::Scalar BGR);
+
+		processingImg::ManipulatorImg applyClassificationBiofilmeAndProtese( );
+
 		ManipulatorImg applyMetrics(processingImg::imageClass pattern);
 
 		ManipulatorImg applyGammaCorrection(float y);
 
-		ManipulatorImg applyRandomShort(int size);
+		void applyRandomShort(int size);
 
 		ManipulatorImg applyImageSubtract(processingImg::imageClass img);
 
@@ -92,11 +100,15 @@ namespace processingImg {
 
 		ManipulatorImg applySuperPixelContour(int algorithm, int region_size, int ruler, int iterate, bool thick_line);
 
+	    ManipulatorImg applySubtractBiofilme(imageClass img);
+
 		ManipulatorImg applySubtractProtese(processingImg::imageClass img);
 
 		ManipulatorImg applyImageCut();
 
-		ManipulatorImg  calcAreaProtese();
+		int  calcAreaProtese();
+
+		int  calcAreaBiofilme();
 
 
 

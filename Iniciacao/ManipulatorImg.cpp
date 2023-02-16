@@ -321,8 +321,7 @@ processingImg::ManipulatorImg processingImg::ManipulatorImg::applyImageContrast(
 }
 
 
-
-processingImg::ManipulatorImg processingImg::ManipulatorImg::applySuperPixelsSegmentation(int algorithm, int region_size, float ruler, int iterate) {
+processingImg::ManipulatorImg processingImg::ManipulatorImg::applySuperPixelsSegmentation(int algorithm, int region_size= 10, float ruler= 0.075f, int iterate= 10) {
 	/*
 	aplicação do método de superpixel na imagem
 
@@ -360,105 +359,213 @@ processingImg::ManipulatorImg processingImg::ManipulatorImg::applySuperPixelsSeg
 		// Mask for each label
 		cv::Mat1b superpixel_mask = labelImg == i;
 
-
-
 		cv::Scalar BGR = mean(img, superpixel_mask);
 
 		img.setTo(BGR, superpixel_mask);
 
 
-		//TO-DO : Colocar isso em outro método, não faz sentido estar nesse método 
-			/*
-
-			if (BGR[0] < 20 && BGR[1] < 20 && BGR[2] < 20) {
-				continue;
-			}
-
-			if (BGR[0] > 193) {
-				if (BGR[0] > 246) {
-					continue;
-				}
-				else {
-					if (BGR[1] > 172) {
-						imgClass.setTo(cv::Scalar(0, 0, 255), superpixel_mask);
-					}
-					else {
-						continue;
-					}
-				}
-			}
-			else {
-				if (BGR[1] > 88) {
-					imgClass.setTo(cv::Scalar(0, 0, 255), superpixel_mask);
-				}
-				else {
-					if (BGR[0] > 140)  {
-						if (BGR[2] > 15) {
-							continue;
-						}
-						else {
-							imgClass.setTo(cv::Scalar(0, 0, 255), superpixel_mask);
-						}
-					}
-					else {
-						if (BGR[1] > 28) {
-							imgClass.setTo(cv::Scalar(0, 0, 255), superpixel_mask);
-						}
-						else {
-							if (BGR[0] > 58) {
-								continue;
-							}
-							else {
-								imgClass.setTo(cv::Scalar(0, 0, 255), superpixel_mask);
-							}
-						}
-					}
-				}
-			}
-
-			*/
-
-
-			//	PADRÃO ****************
-		if (BGR[0] < 20 && BGR[1] < 20 && BGR[2] < 20) {
-			continue;
+		if (applyClassificationRefinedTree(BGR)) {
+			imgClass.setTo(cv::Scalar(0, 0, 255), superpixel_mask);  //caso o método de classificação tenha retornado verdadeiro, então é um biofilme 
 		}
-
-		if (BGR[0] > 184) {
-			if (BGR[0] > 210) {
-				continue;
-			}
-			else {
-				if (BGR[1] > 132) {
-					imgClass.setTo(cv::Scalar(0, 0, 255), superpixel_mask);
-				}
-				else {
-					continue;
-				}
-			}
-		}
-		else {
-			if (BGR[1] > 100) {
-				imgClass.setTo(cv::Scalar(0, 0, 255), superpixel_mask);
-			}
-			else {
-				if (BGR[0] > 122) {
-					continue;
-				}
-				else {
-					imgClass.setTo(cv::Scalar(0, 0, 255), superpixel_mask);
-				}
-			}
-		}
+		//caso contrário é um pedaço da prótese 
 
 
 	}
 
 
-	this->setImg(imgClass);
+
+		this->setImg(imgClass);
+
+		return *this;
+}
+
+
+/*recebe o pixel e classifica entre biofilme e prótese com base na arvore treinada com as 10 instâncias das imagens,
+escolhendo 10 pixels de biofilme e 10 de prótese(200 pixels)
+*/
+bool processingImg::ManipulatorImg::applyClassificationOldTree(cv::Scalar BGR ) {
+
+	if (BGR[0] < 20 && BGR[1] < 20 && BGR[2] < 20) {
+		return false;
+	}
+
+	if (BGR[0] > 184) {
+		if (BGR[0] > 210) {
+			return false;
+		}
+		else {
+			if (BGR[1] > 132) {
+				return true;
+			}
+			else {
+				return false;
+			}
+		}
+	}
+	else {
+		if (BGR[1] > 100) {
+			return true; 
+		}
+		else {
+			if (BGR[0] > 122) {
+				return false;
+			}
+			else {
+				return true; 
+			}
+		}
+	}
+
+
+}
+
+
+/*recebe o pixel e classifica entre biofilme e prótese com base na arvore treinada com todas as instancias, 
+escolhendo 10 pixels de biofilme e 10 de prótese de modo aleatório
+
+*/
+bool processingImg::ManipulatorImg::applyClassificationNewTree(cv::Scalar BGR) {
+	
+	if (BGR[0] < 20 && BGR[1] < 20 && BGR[2] < 20) {
+		return false;
+	}
+
+	if (BGR[0] > 193) {
+		if (BGR[0] > 246) {
+			return false;
+		}
+		else {
+			if (BGR[1] > 172) {
+				return true;
+			}
+			else {
+				return false;
+			}
+		}
+	}
+	else {
+		if (BGR[1] > 88) {
+			return true;
+		}
+		else {
+			if (BGR[0] > 140) {
+				if (BGR[2] > 15) {
+					return false;
+				}
+				else {
+					return true;
+				}
+			}
+			else {
+				if (BGR[1] > 28) {
+					return true;
+				}
+				else {
+					if (BGR[0] > 58) {
+						return false;
+					}
+					else {
+						return true;
+					}
+				}
+			}
+		}
+	}
+
+}
+
+
+/*recebe o pixel e classifica entre biofilme e prótese com base na arvore treinada com todas as instancias,
+escolhendo 10 pixels de biofilme e 10 de prótese de modo aleatório
+
+*/
+bool processingImg::ManipulatorImg::applyClassificationRefinedTree(cv::Scalar BGR) {
+
+	if (BGR[0] < 20 && BGR[1] < 20 && BGR[2] < 20) {
+		return false;
+	}
+
+	if (BGR[0] > 206) {
+		if (BGR[0] > 246) {
+			return false;
+		}
+		else {
+			if (BGR[1] > 88) {
+				return true;
+			}
+			else {
+				return false;
+			}
+		}
+	}
+	else {
+		if (BGR[1] > 36) {
+			if (BGR[0] > 91) {
+				if (BGR[1] > 67) {
+					return true;
+				}
+				else {
+					return false;
+				}
+			}
+			else {
+				return true; 
+			}
+		}
+		else {
+			if (BGR[0] > 66) {
+				return false;
+			}
+			else {
+				return true; 
+			}
+		
+		}
+	}
+
+
+}
+
+
+
+
+//subtrai uma imageClass da outra resultando apenas no biofilme 
+processingImg::ManipulatorImg processingImg::ManipulatorImg::applyClassificationBiofilmeAndProtese() {
+
+	cv::Mat img = this->img.getImg();
+
+	for (int i = 0; i < img.rows; i++) {
+
+		for (int j = 0; j < img.cols; j++) {
+			if (!applyClassificationRefinedTree(img.at<cv::Vec3b>(i, j))) {
+				continue;
+			}
+			else {
+					img.at<cv::Vec3b>(i, j)[0] = 0;
+					img.at<cv::Vec3b>(i, j)[1] = 0;
+					img.at<cv::Vec3b>(i, j)[2] = 255;
+			}
+
+		}
+
+	}
 
 	return *this;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 processingImg::ManipulatorImg processingImg::ManipulatorImg::applyMetrics(imageClass pattern) {
@@ -511,22 +618,41 @@ processingImg::ManipulatorImg processingImg::ManipulatorImg::applyMetrics(imageC
 			if (redPattern and redImg) {
 
 				verdadeiroPositivos += 1;
+
+				//Vermelho é verdadeiro positivo
+				img.at<cv::Vec3b>(i, j)[0] = 0;
+				img.at<cv::Vec3b>(i, j)[1] = 0;
+				img.at<cv::Vec3b>(i, j)[2] = 255;
 			}
 
 			//Se o padrão é !vermelho (protese) e a imagem é bioflme, temos então um falso positvo
 			else if (!redPattern and redImg) {
 				falsopositivos += 1;
 
+				//Rosa Escuro é falso positivo
+				img.at<cv::Vec3b>(i, j)[0] = 128;
+				img.at<cv::Vec3b>(i, j)[1] = 0;	
+				img.at<cv::Vec3b>(i, j)[2] = 128;
 			}
 
 			//Se o padrão é !vermelho  (protese) e a imagem é !vermelho (protese) , temos então um verdadeiro negativo
 			else if (!redPattern and !redImg) {
 				vedadeiroNegativo += 1;
+
+				//Verde é verdadeiro negativp
+				img.at<cv::Vec3b>(i, j)[0] = 0;
+				img.at<cv::Vec3b>(i, j)[1] = 255;
+				img.at<cv::Vec3b>(i, j)[2] = 0;
 			}
 
 			//Caso padrão seja vermelho e imagem é !vermelho (região de protese), temos um falso negativo 
 			else if (redPattern and !redImg) {
 				falsonegativo += 1;
+
+				//Amarelho é um falso negativo 
+				img.at<cv::Vec3b>(i, j)[0] = 0;
+				img.at<cv::Vec3b>(i, j)[1] = 255;
+				img.at<cv::Vec3b>(i, j)[2] = 255;
 			}
 
 
@@ -552,8 +678,7 @@ processingImg::ManipulatorImg processingImg::ManipulatorImg::applyMetrics(imageC
 
 
 
-
-processingImg::ManipulatorImg processingImg::ManipulatorImg::applyRandomShort(int size) {
+void  processingImg::ManipulatorImg::applyRandomShort(int size) {
 
 	//Método para escolher pixels aleatórios dentro da imagem 
 	// valor de size para especificar a quantidade de pixels aleatórios deseja-se
@@ -563,36 +688,57 @@ processingImg::ManipulatorImg processingImg::ManipulatorImg::applyRandomShort(in
 	int imgCols = img.cols;
 	int imgRows = img.rows;
 
-
+	cv::Vec3b RGB;
+	std::vector <cv::Vec3b> arrayRGB; 
 	int count = 0;
-	int colRandom;
-	int rowRandom;
+
+
+	//colocar os valores em um arrayList
+
+	for (int i = 0; i < imgCols; i++) {
+		for (int j = 0; j < imgRows; j++) {
+
+
+			if (img.at<cv::Vec3b>(j, i)[0] <= 20 and img.at<cv::Vec3b>(j,i)[1] <= 20 and img.at<cv::Vec3b>(j, i)[2] <= 20)
+				continue; //pula os valores de RGB preto
+
+			RGB = img.at<cv::Vec3b>(j, i);
+			arrayRGB.push_back(RGB); //Adiciona o RGB no array 
+		}
+	}
+
+	
 
 	srand((unsigned)time(NULL));
 
+	int lineRandom = 0;  //seleciona a linha aleatóriamente de 0 a array.size()
 
 	while (count < size) {
 
-		colRandom = 0 + (rand() % imgCols);
-		rowRandom = 0 + (rand() % imgRows);
 
-		if (img.at<cv::Vec3b>(rowRandom, colRandom)[0] != 0 and img.at<cv::Vec3b>(rowRandom, colRandom)[1] != 0 and
-			img.at<cv::Vec3b>(rowRandom, colRandom)[2] != 0) {
-
-			int B = img.at<cv::Vec3b>(rowRandom, colRandom)[0];
-			int G = img.at<cv::Vec3b>(rowRandom, colRandom)[1];
-			int R = img.at<cv::Vec3b>(rowRandom, colRandom)[2];
-
-
-			std::cout << R << "\t " << G << "\t" << B << "\t" << "biofilme" << endl; //mostra os valores expressos de R,G e B 
-
-			count += 1;
+		if (arrayRGB.size() == 0) { // para o caso onde não há biofilme na imagem
+			count += 1; 
+			continue; 
+		}
+		else {
+			lineRandom = 0 + (rand() % arrayRGB.size());
 		}
 
 
+
+		int B = arrayRGB[lineRandom][0];
+		int G = arrayRGB[lineRandom][1];
+		int R = arrayRGB[lineRandom][2];
+
+
+		std::cout<< R << "\t " << G << "\t" << B << "\t" << "protese" << endl; //mostra os valores expressos de R,G e B 
+
+		count += 1;
+	
+
 	}
 
-	return *this;
+	
 
 
 }
@@ -618,7 +764,6 @@ processingImg::ManipulatorImg processingImg::ManipulatorImg::applyImagemAdd(imag
 	return *this;
 }
 
-
 processingImg::ManipulatorImg processingImg::ManipulatorImg::applySuperPixelContour(int algorithm, int region_size, int ruler, int iterate, bool thick_line) {
 	//Contorno do superpixel 
 	cv::Mat img = this->img.getImg();
@@ -638,7 +783,37 @@ processingImg::ManipulatorImg processingImg::ManipulatorImg::applySuperPixelCont
 	return *this;
 }
 
-//subtrai uma imageClass da outra 
+
+
+//subtrai uma imageClass da outra resultando apenas no biofilme 
+processingImg::ManipulatorImg processingImg::ManipulatorImg::applySubtractBiofilme(imageClass img) {
+
+	cv::Mat imgj = img.getImg();
+	cv::Mat imgp = this->img.getImg();
+
+	for (int i = 0; i < imgp.rows; i++) {
+
+		for (int j = 0; j < imgp.cols; j++) {
+
+			if (imgj.at<cv::Vec3b>(i, j)[0] == 0 and imgj.at<cv::Vec3b>(i, j)[1] == 0 and imgj.at<cv::Vec3b>(i, j)[2] == 255) {
+				continue;
+			}
+			else {
+				
+					imgp.at<cv::Vec3b>(i, j) = 0; 
+				 }
+
+		}
+
+	}
+
+	return *this;
+}
+
+
+
+
+//subtrai a protese da imagem, resultando somente em biofilme 
 processingImg::ManipulatorImg processingImg::ManipulatorImg::applySubtractProtese(imageClass img) {
 
 	cv::Mat imgj = img.getImg();
@@ -648,7 +823,10 @@ processingImg::ManipulatorImg processingImg::ManipulatorImg::applySubtractProtes
 
 		for (int j = 0; j < imgp.cols; j++) {
 
-			if (imgj.at<cv::Vec3b>(i, j)[0] == 0 and imgj.at<cv::Vec3b>(i, j)[1] == 0 and imgj.at<cv::Vec3b>(i, j)[2] == 0) {
+			if (imgj.at<cv::Vec3b>(i, j)[0] == 0 and imgj.at<cv::Vec3b>(i, j)[1] == 255 and imgj.at<cv::Vec3b>(i, j)[2] == 0) {
+				continue;
+			}
+			else {
 				imgp.at<cv::Vec3b>(i, j) = 0;
 			}
 
@@ -656,17 +834,8 @@ processingImg::ManipulatorImg processingImg::ManipulatorImg::applySubtractProtes
 
 	}
 
-	std::cout << "base medidas = " << imgp.rows << "\t" << imgp.cols << endl;
-	std::cout << "mask = " << imgj.rows << "\t" << imgj.cols << endl;
-
-
-	cv::waitKey(0);
-
 	return *this;
 }
-
-
-
 
 
 //recorta a área da regua na imagem 
@@ -721,30 +890,48 @@ void processingImg::ManipulatorImg::calcArea() {
 
 }
 
-//calculo da área da protese Tenho experiência em pesquisa ciêntifica 
-processingImg::ManipulatorImg processingImg::ManipulatorImg::calcAreaProtese() {
+//calculo da área da protese 
+int processingImg::ManipulatorImg::calcAreaProtese() {
 
 	cv::Mat img = this->img.getImg();
 	int size = 0;
 
+
 	for (int i = 0; i < img.rows; i++) {
 		for (int j = 0; j < img.cols; j++) {
-			if (img.at<cv::Vec3b>(i, j)[0] > 20 and img.at<cv::Vec3b>(i, j)[1] > 20 and img.at<cv::Vec3b>(i, j)[2] > 20) {
-				//img.at<cv::Vec3b>(i, j)[0] = 0;
-					//img.at<cv::Vec3b>(i, j)[1] = 255;
-					//img.at<cv::Vec3b>(i, j)[2] = 0;
+			
+			if (img.at<cv::Vec3b>(i, j)[0] == 0 and img.at<cv::Vec3b>(i, j)[1] == 0 and img.at<cv::Vec3b>(i, j)[2] != 255) {
+				continue;
+			}
+			else {
 				size++;
-
 			}
 
 		}
 	}
 
-
-
-
-	std::cout << "Area da protese" << size << std::endl;
-	return *this;
+	return size;
 }
+
+
+int processingImg::ManipulatorImg::calcAreaBiofilme() {
+
+	cv::Mat img = this->img.getImg();
+	int size = 0;
+
+
+	for (int i = 0; i < img.rows; i++) {
+		for (int j = 0; j < img.cols; j++) {
+			if (img.at<cv::Vec3b>(i, j)[0] == 0 and img.at<cv::Vec3b>(i, j)[1] == 0 and img.at<cv::Vec3b>(i, j)[2] == 255) {
+				size++;
+			}
+
+		}
+	}
+
+	return size;
+}
+
+
 
 
