@@ -145,11 +145,15 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="ImgUtil\imageClass.cpp" />
+    <ClCompile Include="ImgUtil\imgContainer.cpp" />
     <ClCompile Include="Iniciacao.cpp" />
-    <ClCompile Include="ManipulatorImg.cpp" />
+    <ClCompile Include="ImgUtil\ManipulatorImg.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="ManipulatorImg.h" />
+    <ClInclude Include="ImgUtil\imageClass.h" />
+    <ClInclude Include="ImgUtil\imgContainer.h" />
+    <ClInclude Include="ImgUtil\ManipulatorImg.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

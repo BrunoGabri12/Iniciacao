@@ -9,46 +9,11 @@
 #include <opencv2/core/core.hpp>
 #include <opencv2/opencv.hpp>
 #include <opencv2/ximgproc.hpp>
-
 #include <cstdlib>
-
+#include "imageClass.h"
 
 
 namespace processingImg {
-
-	class imageClass {
-
-	public:
-
-		imageClass() {} //construtores 
-
-		imageClass(cv::Mat imageInstated) { this->img = imageInstated; }
-
-		imageClass(char* path) { setImg(path); }
-
-
-
-		bool emptyImg() { return this->img.empty(); }
-
-		cv::Mat getImg() { return this->img; }
-
-		void setImg(const char* path);
-
-		void setImg(cv::Mat imageInstated) { this->img = imageInstated; }
-
-
-		void imShow();
-
-		void imWrite(std::string path, std::string name);
-
-	private:
-
-		cv::Mat img;
-
-	};
-
-
-	//********************* imgManipulator *****************
 
 	class ManipulatorImg {
 
@@ -65,6 +30,7 @@ namespace processingImg {
 		}
 
 		//Possui utilizar 
+
 
 		ManipulatorImg applyImageThresholding(int min, int max, int type);
 
@@ -85,6 +51,8 @@ namespace processingImg {
 		bool applyClassificationNewTree(cv::Scalar BGR);
 
 		bool applyClassificationRefinedTree(cv::Scalar BGR);
+
+		bool applyClassificationV3Tree(cv::Scalar BGR);
 
 		processingImg::ManipulatorImg applyClassificationBiofilmeAndProtese( );
 
@@ -122,39 +90,6 @@ namespace processingImg {
 	private:
 
 		processingImg::imageClass img;
-
-	};
-
-
-	//********************** vector imgs **********************
-	class imgContainer {
-
-	public:
-		//set caminho
-
-		imgContainer(std::string path) { this->path = path; this->addListImgs(); }
-
-		imgContainer() {};
-
-		bool setPath(char* path);
-
-		std::string getPath();
-
-		processingImg::imageClass getImgInVector(int number);
-
-		int sizeVector() { return imageVector.size(); }
-
-		void addImgs(processingImg::imageClass img);
-
-		std::vector <std::string> returnNamesImages();
-
-
-	private:
-
-		std::string path = "-1";
-		std::vector <processingImg::imageClass> imageVector;
-
-		void addListImgs();
 
 	};
 

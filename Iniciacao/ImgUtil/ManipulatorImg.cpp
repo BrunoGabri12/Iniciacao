@@ -11,149 +11,9 @@ using namespace std;
 
 
 
-//************************** IMG ********************************
-
-void processingImg::imageClass::setImg(const char* path) {
-
-	try {
-		this->img = cv::imread(path);
-	}
-	catch (char* ex) {
-		std::cout << ex << std::endl;
-	}
-
-}
-
-
-void processingImg::imageClass::imShow() {
-
-	cv::namedWindow("img", cv::WINDOW_NORMAL);
-	cv::imshow("img", this->img);
-
-
-	cv::waitKey(0); // waits until a key is pressed
-	cv::destroyAllWindows(); // destroys the window showing processingImg
-}
 
 
 
-
-void processingImg::imageClass::imWrite(string path, string name) {
-
-	cv::imwrite(path + name + string(".png"), getImg());
-
-}
-
-std::string processingImg::imgContainer::getPath() {
-	return this->path;
-}
-
-//Set path of directory
-bool processingImg::imgContainer::setPath(char* path) {
-
-
-	if (path == NULL) {
-		throw "caminho inválido";
-	}
-
-	else {
-		this->path = path;
-		return true;
-	}
-}
-
-
-//retorna processingImg::imageClass presente no intervalo do index 
-processingImg::imageClass processingImg::imgContainer::getImgInVector(int number) {
-
-	if (number <= imageVector.size()) {
-		processingImg::imageClass img = imageVector.at(number);
-		return img;
-	}
-	else {
-		std::cout << "index out of range";
-
-	}
-
-}
-
-
-
-
-
-//retorna o nome das imagens presentes no vector 
-std::vector <std::string> processingImg::imgContainer::returnNamesImages() {
-
-	//busca o nome de cada arquivo de imagem contido no caminho especificado
-	//retorna um vetor de strings com o nome de cada imagem do diretorio
-
-
-	std::vector <std::string> names_imgs; //name vector
-	std::string pathElement = getPath();
-
-
-	struct dirent* dir;
-
-	DIR* d;
-
-	try {	//abertura do diret�rio 
-
-		d = opendir(pathElement.c_str());
-
-
-		while ((dir = readdir(d)) != NULL) {
-			names_imgs.push_back(dir->d_name);
-		}
-
-
-		closedir(d);
-
-		return names_imgs;
-
-	}
-	catch (char* ex) {
-
-		std::cout << ex << std::endl;
-	}
-
-}
-
-
-
-// obtem um vector com o nome das imagens presentes no diretório 
-void processingImg::imgContainer::addListImgs() {
-
-	//Adiciona cada imagem em um vetor de imagens
-	//Retorna um vetor com todas as imagens do diret�rio
-
-
-	processingImg::imageClass imgElement;
-
-	std::vector <std::string> list_imgs = returnNamesImages();
-	cv::Mat test;
-
-	for (int i = 2; i < list_imgs.size(); i++) {
-
-		string pt = path + list_imgs[i];
-
-		imgElement.setImg(pt.c_str());
-
-
-		if (!imgElement.emptyImg()) {
-			this->imageVector.push_back(imgElement);
-
-		}
-
-	}
-
-}
-
-void processingImg::imgContainer::addImgs(processingImg::imageClass img) {
-	if (!img.emptyImg()) {
-		this->imageVector.push_back(img);
-	}
-
-}
 
 
 /*************THRESHOLDING************/
@@ -215,10 +75,10 @@ processingImg::ManipulatorImg processingImg::ManipulatorImg::applyImageAdaptativ
 		3,5,7
 	C = constante normalmente positiva
 	*/
+	cv::Mat img = this->img.getImg();
+	cv::adaptiveThreshold(this->img.getImg(),img, maxValue, adaptiveMethods, thresholdType, blockSize, C);
 
-	cv::adaptiveThreshold(this->img.getImg(), this->img.getImg(), maxValue, adaptiveMethods, thresholdType, blockSize, C);
-
-
+	this->img.setImg(img);
 	return *this;
 }
 
@@ -234,6 +94,8 @@ processingImg::ManipulatorImg processingImg::ManipulatorImg::applyImageGaussianB
 
 	retorna a imagem com o blur aplicado
 	*/
+
+
 	cv::GaussianBlur(this->img.getImg(), this->img.getImg(), ksize, sigmaX, sigmaY);
 
 	return *this;
@@ -314,9 +176,11 @@ processingImg::ManipulatorImg processingImg::ManipulatorImg::applyImageContrast(
 	retorna a imagem com o contraste e brilho modificados
 	*/
 
+	cv::Mat img = this->img.getImg();
 
+	this->img.imShow();
 
-	this->img.getImg().convertTo(this->img.getImg(), -1, alpha, beta);
+	this->img.getImg().convertTo(img, -1, alpha, beta);
 	return *this;
 }
 
@@ -364,9 +228,9 @@ processingImg::ManipulatorImg processingImg::ManipulatorImg::applySuperPixelsSeg
 		img.setTo(BGR, superpixel_mask);
 
 
-		if (applyClassificationRefinedTree(BGR)) {
-			imgClass.setTo(cv::Scalar(0, 0, 255), superpixel_mask);  //caso o método de classificação tenha retornado verdadeiro, então é um biofilme 
-		}
+		//if (applyClassificationRefinedTree(BGR)) {
+			//imgClass.setTo(cv::Scalar(0, 0, 255), superpixel_mask);  //caso o método de classificação tenha retornado verdadeiro, então é um biofilme 
+		//}
 		//caso contrário é um pedaço da prótese 
 
 
@@ -526,6 +390,74 @@ bool processingImg::ManipulatorImg::applyClassificationRefinedTree(cv::Scalar BG
 
 }
 
+bool processingImg::ManipulatorImg::applyClassificationV3Tree(cv::Scalar BGR) {
+	if (BGR[0] < 20 && BGR[1] < 20 && BGR[2] < 20) {
+		return false;
+	}
+
+	if (BGR[0] > 163) {
+		if (BGR[1] > 86) {
+			if (BGR[0] > 246) {
+				return false;
+			}
+			else {
+				if (BGR[1] > 137) {
+					return true; 
+				}
+				else {
+					return false;
+				}
+			}
+		}
+		else {
+			return false;
+		}
+	}
+	else {
+		if (BGR[1] > 13) {
+			if (BGR[0] > 90) {
+				if (BGR[1] > 52) {
+					if (BGR[1] > 122) {
+						return true;
+					}
+					else {
+						if (BGR[0] > 133) {
+							if (BGR[0] > 143 ) {
+								return true;
+							}
+							else {
+								return false; 
+							}
+						}
+						else {
+							return true; 
+						}
+					}
+				}
+				else {
+					return false;
+				}
+			}
+			else {
+				if (BGR[1] > 33) {
+					return true;
+				}
+				else {
+					if (BGR[0] > 43) {
+						return false;
+					}
+					else {
+						return true; 
+					}
+				}
+			}
+		}
+		else {
+			return false;
+		}
+	}
+}
+
 
 
 
@@ -537,7 +469,7 @@ processingImg::ManipulatorImg processingImg::ManipulatorImg::applyClassification
 	for (int i = 0; i < img.rows; i++) {
 
 		for (int j = 0; j < img.cols; j++) {
-			if (!applyClassificationRefinedTree(img.at<cv::Vec3b>(i, j))) {
+			if (!applyClassificationV3Tree(img.at<cv::Vec3b>(i, j))) {
 				continue;
 			}
 			else {
@@ -746,15 +678,15 @@ void  processingImg::ManipulatorImg::applyRandomShort(int size) {
 //Subtrai uma imagem da outra 
 processingImg::ManipulatorImg processingImg::ManipulatorImg::applyImageSubtract(imageClass img) {
 
-	cv::Mat base = this->img.getImg();
-	cv::Mat mask = img.getImg();
+	cv::Mat base =  img.getImg();
+	cv::Mat mask =  this->img.getImg();
 	cv::Mat result;
 
 	base.copyTo(result, mask);
 
+	
 
 	this->setImg(result);
-
 
 	return *this;
 }
@@ -851,7 +783,7 @@ processingImg::ManipulatorImg processingImg::ManipulatorImg::applyImageCut() {
 	for (i = img.rows / 2; i < img.rows; ++i) {
 
 
-		for (j = 0; j < img.cols * 3; ++j) { //percorre uma linha inteira para 
+		for (j = 0; j < img.cols ; ++j) { //percorre uma linha inteira para 
 											//verificar se existe uma linha somente com zeros 
 
 			if (!img.at<uchar>(i, j) == 0) {
@@ -863,7 +795,7 @@ processingImg::ManipulatorImg processingImg::ManipulatorImg::applyImageCut() {
 		if (flag) { //se flag== false, então linha em preto foi encontrada
 
 			for (; i < img.rows; i++) {	//
-				for (int t = 0; t < img.cols * 3; t++) {
+				for (int t = 0; t < img.cols; t++) {
 					img.at<uchar>(i, t) = 0;
 				}
 			}

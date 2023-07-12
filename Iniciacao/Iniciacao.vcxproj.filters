@@ -18,12 +18,24 @@
     <ClCompile Include="Iniciacao.cpp">
       <Filter>Arquivos de Origem</Filter>
     </ClCompile>
-    <ClCompile Include="ManipulatorImg.cpp">
+    <ClCompile Include="ImgUtil\ManipulatorImg.cpp">
+      <Filter>Arquivos de Origem</Filter>
+    </ClCompile>
+    <ClCompile Include="ImgUtil\imgContainer.cpp">
+      <Filter>Arquivos de Origem</Filter>
+    </ClCompile>
+    <ClCompile Include="ImgUtil\imageClass.cpp">
       <Filter>Arquivos de Origem</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="ManipulatorImg.h">
+    <ClInclude Include="ImgUtil\ManipulatorImg.h">
+      <Filter>Arquivos de Origem\Arquivos de Cabeçalho</Filter>
+    </ClInclude>
+    <ClInclude Include="ImgUtil\imgContainer.h">
+      <Filter>Arquivos de Origem\Arquivos de Cabeçalho</Filter>
+    </ClInclude>
+    <ClInclude Include="ImgUtil\imageClass.h">
       <Filter>Arquivos de Origem\Arquivos de Cabeçalho</Filter>
     </ClInclude>
   </ItemGroup>
